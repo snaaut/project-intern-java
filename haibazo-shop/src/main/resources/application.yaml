@@ -1,0 +1,19 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /clothingShop
+
+spring:
+  datasource:
+    url: "jdbc:postgresql://dpg-crsfbk68ii6s73ed2dig-a.oregon-postgres.render.com:5432/haibado_shop"
+    username: haibado_shop_user
+    password: ZvYZj6WoZBytU8Z8dQB969HkZT96HjZu
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
