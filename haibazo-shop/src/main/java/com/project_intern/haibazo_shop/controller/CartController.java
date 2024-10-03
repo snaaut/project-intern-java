@@ -30,4 +30,9 @@ public class CartController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/remain-server")
+        public void remainServer() {
+        //api rỗng để duy trì server
+    }
 }
