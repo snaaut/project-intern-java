@@ -28,7 +28,6 @@ public class CartItem {
     Product product;
     String size;
     String color;
-    String style;
     int quantity;
 
 }

@@ -21,10 +21,10 @@ public class CartController {
             @RequestParam Long productId,
             @RequestParam String size,
             @RequestParam String color,
-            @RequestParam String style,
+//            @RequestParam String style,
             @RequestParam int quantity) {
         try {
-            List<CartItemResponse> cartItems = cartService.addProductToCart(userId, productId, size, color, style, quantity);
+            List<CartItemResponse> cartItems = cartService.addProductToCart(userId, productId, size, color, quantity);
             return ResponseEntity.ok(cartItems);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

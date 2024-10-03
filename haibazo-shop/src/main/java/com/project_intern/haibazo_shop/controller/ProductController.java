@@ -34,9 +34,9 @@ public class ProductController {
     }
     @GetMapping("/filter")
     public List<ProductResponse> filterProductsByColorSizeAndStype(
-            @RequestParam String color,
-            @RequestParam String size,
-            @RequestParam String style) {
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String style) {
         return productService.filterProductsByColorSizeAndStyle(color, size, style);
     }
 

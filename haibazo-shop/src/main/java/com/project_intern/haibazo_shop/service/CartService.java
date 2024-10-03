@@ -34,7 +34,7 @@ public class CartService {
     @Autowired
     private ColorRepository colorRepository;
 
-    public List<CartItemResponse> addProductToCart(Long userId, Long productId, String sizeName, String colorName, String style, int quantity) {
+    public List<CartItemResponse> addProductToCart(Long userId, Long productId, String sizeName, String colorName, int quantity) {
 
         Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -66,7 +66,7 @@ public class CartService {
             throw new RuntimeException("Quantity demanded exceeds quantity in stock");
         }
 
-        Optional<CartItem> existingCartItem = cartItemRepository.findByCartAndProductAndSizeAndColorAndStyle(cart, product, sizeName, colorName, style);
+        Optional<CartItem> existingCartItem = cartItemRepository.findByCartAndProductAndSizeAndColor(cart, product, sizeName, colorName);
 
         if (existingCartItem.isPresent()) {
             // Đã có trong giỏ hàng thì cộng thêm số lượng
@@ -84,7 +84,6 @@ public class CartService {
             newItem.setProduct(product);
             newItem.setSize(sizeName);
             newItem.setColor(colorName);
-            newItem.setStyle(style);
             newItem.setQuantity(quantity);
             cartItemRepository.save(newItem);
         }
@@ -99,7 +98,6 @@ public class CartService {
                     itemProduct.getName(),
                     cartItem.getSize(),
                     cartItem.getColor(),
-                    cartItem.getStyle(),
                     cartItem.getQuantity()
             );
         }).collect(Collectors.toList());

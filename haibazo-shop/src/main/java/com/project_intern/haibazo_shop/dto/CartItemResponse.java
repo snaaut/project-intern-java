@@ -12,6 +12,5 @@ public class CartItemResponse {
     private String productName;
     private String size;
     private String color;
-    private String style;
     private int quantity;
 }

@@ -13,12 +13,14 @@ import java.util.Optional;
 
 public interface ProductQuantityRepository extends JpaRepository<ProductQuantity, Long> {
 
-    @Query("SELECT pq FROM ProductQuantity pq WHERE pq.color.color = :color AND pq.size.size = :size AND pq.product.style = :style")
+    @Query("SELECT pq FROM ProductQuantity pq " +
+            "WHERE (:color IS NULL OR pq.color.color = :color) " +
+            "AND (:size IS NULL OR pq.size.size = :size) " +
+            "AND (:style IS NULL OR pq.product.style = :style)")
     List<ProductQuantity> findByColorSizeAndStyle(
             @Param("color") String color,
             @Param("size") String size,
             @Param("style") String style);
-
     List<ProductQuantity> findByProductId(Long productId);
     Optional<ProductQuantity> findByProductAndSizeAndColor(Product product, Size size, Color color);
 }
