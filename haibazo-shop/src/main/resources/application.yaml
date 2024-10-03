@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /clothingShop
+    context-path: /haibazoShop
 
 spring:
   datasource:
@@ -16,4 +16,3 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-
