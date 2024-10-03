@@ -37,32 +37,35 @@ public class ProductService {
     @Autowired
     private DiscountRepository discountRepository;
 
-    public List<ProductResponse> getAllProductsWithDiscount() {
-        List<Product> products = productRepository.findAll();
+public List<ProductResponse> getAllProductsWithDiscount() {
+    List<Product> products = productRepository.findAll();
 
-        return products.stream().map(product -> {
-            // Tìm discount tương ứng với sản phẩm
-            List<Discount> discounts = discountRepository.findByIdProductContains(Math.toIntExact(product.getId()));
+    return products.stream().map(product -> {
+        // Tìm discount của sản phẩm
+        List<Discount> discounts = discountRepository.findByIdProductContains(Math.toIntExact(product.getId()));
 
-            // Tính discountedPrice nếu có discount
-            double discountedPrice = product.getOriginalPrice();
-            if (!discounts.isEmpty()) {
-                Discount discount = discounts.get(0); // Lấy discount đầu tiên (có thể tùy chỉnh theo logic của bạn)
+        // Tính discountedPrice nếu có discount và còn thời hạn
+        double discountedPrice = product.getOriginalPrice();
+        if (!discounts.isEmpty()) {
+            Discount discount = discounts.get(0); // Lấy discount đầu tiên
+            LocalDateTime now = LocalDateTime.now();
+            if (discount.getDiscountDate().isAfter(now)) { // Kiểm tra thời hạn mã giảm giá
                 discountedPrice = product.getOriginalPrice() * (1 - discount.getDiscountPercentage());
             }
+        }
 
-            // Tạo ProductResponse
-            return ProductResponse.builder()
-                    .id(product.getId())
-                    .name(product.getName())
-                    .description(product.getDescription())
-                    .stype(product.getStyle())
-                    .images(product.getImages())
-                    .originalPrice(product.getOriginalPrice())
-                    .discountedPrice(discountedPrice)
-                    .build();
-        }).collect(Collectors.toList());
-    }
+        // Tạo ProductResponse
+        return ProductResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .description(product.getDescription())
+                .stype(product.getStyle())
+                .images(product.getImages())
+                .originalPrice(product.getOriginalPrice())
+                .discountedPrice(discountedPrice)
+                .build();
+    }).collect(Collectors.toList());
+}
 
     public List<ProductResponse> filterProductsByColorSizeAndStyle(String color, String size, String stype) {
         List<ProductQuantity> productQuantities = productQuantityRepository.findByColorSizeAndStyle(color, size, stype);
@@ -70,17 +73,22 @@ public class ProductService {
         return productQuantities.stream().map(productQuantity -> {
             var product = productQuantity.getProduct();
 
-            // Tìm discount tương ứng với sản phẩm
+            // Tìm discount của sản phẩm
             List<Discount> discounts = discountRepository.findByIdProductContains(Math.toIntExact(product.getId()));
 
-            // Tính discountedPrice nếu có discount
+            // Tính discountedPrice nếu có discount và còn trong thời gian áp dụng
             double discountedPrice = product.getOriginalPrice();
             if (!discounts.isEmpty()) {
-                Discount discount = discounts.get(0); // Lấy discount đầu tiên (có thể tùy chỉnh theo logic của bạn)
-                discountedPrice = product.getOriginalPrice() * (1 - discount.getDiscountPercentage());
+                Discount discount = discounts.get(0); // Lấy discount đầu tiên
+                LocalDateTime now = LocalDateTime.now();
+                if (discount.getDiscountDate().isAfter(now)) { // Kiểm tra thời hạn mã giảm giá
+                    discountedPrice = product.getOriginalPrice() * (1 - discount.getDiscountPercentage());
+                }
+                else {
+                    // Nếu hết hạn giảm giá thì giá trở về giá gốc
+                    discountedPrice = productQuantities.get(0).getProduct().getOriginalPrice();
+                }
             }
-
-
 
             // Tạo ProductResponse
             return ProductResponse.builder()
@@ -94,8 +102,6 @@ public class ProductService {
                     .build();
         }).collect(Collectors.toList());
     }
-
-
 
     public ProductDetail getProductDetail(Long productId) {
         // Lấy thông tin đánh giá
@@ -113,16 +119,21 @@ public class ProductService {
         // Lấy thông tin discount
         List<Discount> discounts = discountRepository.findByIdProductContains(productId);
         double discountedPrice = 0;
-        long discountDurian = 0;
+        long discountTime = 0;
         if (!discounts.isEmpty()) {
             Discount discount = discounts.get(0);
-            discountedPrice = productQuantities.get(0).getProduct().getOriginalPrice() * (1 - discount.getDiscountPercentage());
-
-            // Tính số ngày còn lại của discount
             LocalDateTime now = LocalDateTime.now();
-            discountDurian = Duration.between(now, discount.getDiscountDate()).toDays();
+            discountTime = Duration.between(now, discount.getDiscountDate()).toDays();
+            if (discountTime<0){
+                discountTime = 0;
+            }
+            if (discount.getDiscountDate().isAfter(now)) {
+                discountedPrice = productQuantities.get(0).getProduct().getOriginalPrice() * (1 - discount.getDiscountPercentage());
+            } else {
+                // Nếu hết hạn giảm giá thì giá trở về giá gốc
+                discountedPrice = productQuantities.get(0).getProduct().getOriginalPrice();
+            }
         }
-
 
         return ProductDetail.builder()
                 .id(productQuantities.get(0).getProduct().getId())
@@ -133,12 +144,11 @@ public class ProductService {
                 .originalPrice(productQuantities.get(0).getProduct().getOriginalPrice())
                 .discountedPrice(discountedPrice)
                 .reviewCount(reviewCount)
-                .discountTime(discountDurian)
+                .discountTime(discountTime)
                 .sizes(sizes)
                 .colors(colors)
                 .build();
     }
-
 
 
     public Product addProduct(Product product) {
